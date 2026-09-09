@@ -1,5 +1,5 @@
 import express from "express";
-import { mapField } from "../services/semanticMapper.js";
+import { mapField } from "../services/semanticEngine.js";
 
 const router = express.Router();
 

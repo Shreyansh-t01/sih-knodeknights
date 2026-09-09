@@ -1,24 +1,28 @@
 import { pipeline } from "@huggingface/transformers";
 
-let extractor = null;
+let embeddingModel = null;
 
 export async function initializeEmbeddingModel() {
-  console.log("Loading embedding");
 
-  extractor = await pipeline(
+  console.log("Loading embedding model...");
+
+  embeddingModel = await pipeline(
     "feature-extraction",
     "Xenova/all-MiniLM-L6-v2"
   );
 
-  console.log("Embedding model loaded.");
+  console.log("Embedding model loaded successfully.");
 }
 
 export async function generateEmbedding(text) {
-  if (!extractor) {
-    throw new Error("Embedding model has not been initialized.");
+
+  if (!embeddingModel) {
+    throw new Error(
+      "Embedding model has not been initialized."
+    );
   }
 
-  const output = await extractor(text, {
+  const output = await embeddingModel(text, {
     pooling: "mean",
     normalize: true
   });

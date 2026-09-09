@@ -1,52 +1,100 @@
 import express from "express";
 import cors from "cors";
 
-import formRoutes from "./routes/formRoutes.js";
+import intelligenceRoutes from "./routes/intelligenceRoutes.js";
 
 import {
   initializeEmbeddingModel
 } from "./services/embeddingService.js";
 
 import {
-  initializeCanonicalEmbeddings
-} from "./services/semanticMapper.js";
+  initializeSemanticEngine
+} from "./services/semanticEngine.js";
+
 
 const app = express();
 
 app.use(cors());
-app.use(express.json());
 
-app.use("/api", formRoutes);
+// Parse incoming JSON requests
+app.use(
+  express.json({
+    limit: "5mb"
+  })
+);
+
+
+app.get("/", (req, res) => {
+
+  res.json({
+
+    system:
+      "SIH Semantic Interoperability Engine",
+
+    status:
+      "running",
+
+    phase:
+      "Phase 1 - Field Intelligence"
+
+  });
+
+});
+
+
+app.use(
+  "/api/intelligence",
+  intelligenceRoutes
+);
+
 
 const PORT = 5000;
+
 
 async function startServer() {
 
   try {
 
-    console.log("Starting Semantic Interoperability Engine...");
+    console.log(
+      "Starting SIH Intelligence Engine"
+    );
+
 
     await initializeEmbeddingModel();
 
-    await initializeCanonicalEmbeddings();
 
-    app.listen(PORT, () => {
+    await initializeSemanticEngine();
 
-      console.log(
-        `Server running at http://localhost:${PORT}`
-      );
 
-    });
+
+    app.listen(
+      PORT,
+      () => {
+
+        console.log(
+          `Server running at http://localhost:${PORT}`
+        );
+
+        console.log(
+          `POST http://localhost:${PORT}/api/intelligence/analyze-form`
+        );
+
+      }
+    );
+
 
   } catch (error) {
 
     console.error(
-      "Failed to start server:",
+      "Server startup failed:",
       error
     );
 
     process.exit(1);
+
   }
+
 }
+
 
 startServer();
