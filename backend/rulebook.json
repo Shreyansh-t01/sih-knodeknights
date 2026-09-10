@@ -1,0 +1,206 @@
+
+{
+  "Address_Update": {
+    "target_departments": [
+      "UIDAI",
+      "Election_Commission",
+      "Passport_Seva",
+      "Transport_Department",
+      "Food_Civil_Supplies",
+      "Revenue_Department",
+      "Municipal_Corporation",
+      "Electricity_Department",
+      "Water_Department",
+      "Income_Tax_Department",
+      "EPFO",
+      "ESIC",
+      "Scholarship_Portal",
+      "Government_Welfare_Departments",
+      "Education_Department",
+      "Police_Department"
+    ]
+  },
+
+  "Name_Update": {
+    "target_departments": [
+      "UIDAI",
+      "Income_Tax_Department",
+      "Election_Commission",
+      "Passport_Seva",
+      "Transport_Department",
+      "Food_Civil_Supplies",
+      "Banking_Services",
+      "Education_Department",
+      "EPFO",
+      "ESIC",
+      "Government_Welfare_Departments"
+    ]
+  },
+
+  "Date_of_Birth_Update": {
+    "target_departments": [
+      "UIDAI",
+      "Income_Tax_Department",
+      "Election_Commission",
+      "Passport_Seva",
+      "Transport_Department",
+      "Education_Department",
+      "EPFO",
+      "ESIC"
+    ]
+  },
+
+  "Mobile_Number_Update": {
+    "target_departments": [
+      "UIDAI",
+      "Income_Tax_Department",
+      "Passport_Seva",
+      "Banking_Services",
+      "EPFO",
+      "ESIC",
+      "Scholarship_Portal",
+      "Government_Welfare_Departments"
+    ]
+  },
+
+  "Email_Update": {
+    "target_departments": [
+      "UIDAI",
+      "Income_Tax_Department",
+      "Passport_Seva",
+      "Banking_Services",
+      "EPFO",
+      "ESIC",
+      "Scholarship_Portal",
+      "Government_Welfare_Departments"
+    ]
+  },
+
+  "Income_Update": {
+    "target_departments": [
+      "Revenue_Department",
+      "Income_Tax_Department",
+      "Scholarship_Portal",
+      "Food_Subsidy_Portal",
+      "Social_Welfare_Department",
+      "Education_Department",
+      "Government_Welfare_Departments",
+      "Agriculture_Department"
+    ]
+  },
+
+  "Caste_Category_Update": {
+    "target_departments": [
+      "Revenue_Department",
+      "Scholarship_Portal",
+      "Education_Department",
+      "Government_Recruitment_Authorities",
+      "Social_Welfare_Department",
+      "Government_Welfare_Departments"
+    ]
+  },
+
+  "Disability_Status_Update": {
+    "target_departments": [
+      "UDID_Portal",
+      "Social_Welfare_Department",
+      "Education_Department",
+      "Scholarship_Portal",
+      "Government_Recruitment_Authorities",
+      "Government_Welfare_Departments",
+      "Transport_Department"
+    ]
+  },
+
+  "Marital_Status_Update": {
+    "target_departments": [
+      "Passport_Seva",
+      "Marriage_Registration_Department",
+      "Government_Welfare_Departments",
+      "Family_Welfare_Department"
+    ]
+  },
+
+  "Bank_Account_Update": {
+    "target_departments": [
+      "DBT_Portal",
+      "Scholarship_Portal",
+      "Pension_Portal",
+      "Food_Subsidy_Portal",
+      "Agriculture_Department",
+      "Government_Welfare_Departments",
+      "EPFO"
+    ]
+  },
+
+  "Domicile_Update": {
+    "target_departments": [
+      "Revenue_Department",
+      "Education_Department",
+      "Scholarship_Portal",
+      "Government_Recruitment_Authorities",
+      "Government_Welfare_Departments"
+    ]
+  },
+
+  "Family_Details_Update": {
+    "target_departments": [
+      "Food_Civil_Supplies",
+      "Government_Welfare_Departments",
+      "Scholarship_Portal",
+      "Pension_Portal",
+      "ESIC",
+      "Family_Welfare_Department"
+    ]
+  },
+
+  "Property_Details_Update": {
+    "target_departments": [
+      "Revenue_Department",
+      "Registration_Department",
+      "Municipal_Corporation",
+      "Property_Tax_Department",
+      "Agriculture_Department"
+    ]
+  },
+
+  "Vehicle_Details_Update": {
+    "target_departments": [
+      "Transport_Department",
+      "RTO",
+      "Traffic_Department",
+      "Vehicle_Insurance_Department"
+    ]
+  },
+
+  "Education_Qualification_Update": {
+    "target_departments": [
+      "Education_Department",
+      "University_Portal",
+      "Scholarship_Portal",
+      "Government_Recruitment_Authorities"
+    ]
+  },
+
+  "Employment_Details_Update": {
+    "target_departments": [
+      "EPFO",
+      "ESIC",
+      "Labour_Department",
+      "Employment_Department"
+    ]
+  },
+
+  "Death_Status_Update": {
+    "target_departments": [
+      "Death_Registration_Department",
+      "Pension_Portal",
+      "EPFO",
+      "ESIC",
+      "Government_Welfare_Departments",
+      "Banking_Services",
+      "Insurance_Department",
+      "Property_Records_Department"
+    ]
+  }
+}
