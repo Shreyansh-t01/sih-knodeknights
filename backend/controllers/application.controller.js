@@ -1,4 +1,7 @@
 const { middlewarePool } = require('../config/db');
+const {
+  updateConsentDecision,
+} = require('../services/application.service');
 const { HttpError } = require('../utils/httpError');
 
 function validGlobalId(value) {
@@ -50,5 +53,32 @@ async function getPendingApplications(req, res, next) {
     return next(error);
   }
 }
+async function updateApplicationConsent(req, res, next) {
+  try {
+    const uarn = validGlobalId(req.params.uarn);
 
-module.exports = { getPendingApplications };
+    if (typeof req.body?.decision !== 'string') {
+      throw new HttpError(
+        400,
+        'VALIDATION_ERROR',
+        'decision is required and must be APPROVED or REJECTED.',
+      );
+    }
+
+    const result = await updateConsentDecision({
+      middlewarePool,
+      uarn,
+      decision: req.body.decision,
+    });
+
+    return res.status(200).json({
+      data: result,
+    });
+  } catch (error) {
+    return next(error);
+  }
+}
+module.exports = {
+  getPendingApplications,
+  updateApplicationConsent,
+};

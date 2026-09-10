@@ -4,6 +4,13 @@ const { assertDatabaseConfiguration, legacySources, middlewarePool } = require('
 const { CdcListener } = require('./services/cdcListener.service');
 const mdmRoutes = require('./routes/mdm.routes');
 const applicationRoutes = require('./routes/application.routes');
+const intelligenceRoutes = require('./routes/intelligenceRoutes');
+const {
+  initializeEmbeddingModel
+} = require('./services/embeddingService');
+const {
+  initializeSemanticEngine
+} = require('./services/semanticEngine');
 const { notFoundHandler, errorHandler } = require('./middleware/errorHandler');
 
 const app = express();
@@ -24,12 +31,15 @@ app.get('/', (_req, res) => {
 
 app.use('/api/mdm', mdmRoutes);
 app.use('/api/applications', applicationRoutes);
-
+app.use('/api/intelligence', intelligenceRoutes);
 app.use(notFoundHandler);
 app.use(errorHandler);
 
 async function startServer() {
   assertDatabaseConfiguration();
+
+await initializeEmbeddingModel();
+await initializeSemanticEngine();
 
   const port = Number(process.env.PORT || '3000');
   if (!Number.isInteger(port) || port < 1 || port > 65535) {
@@ -74,3 +84,6 @@ if (require.main === module) {
 }
 
 module.exports = { app, startServer };
+
+
+
