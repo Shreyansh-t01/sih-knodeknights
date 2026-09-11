@@ -1,0 +1,1 @@
+postgres - postgresql://neondb_owner:npg_vCRai9rHE4LV@ep-restless-wildflower-ax58avbt-pooler.c-4.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require
