@@ -1,122 +1,125 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import React from 'react';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { NavigationProvider, useNavigation } from './context/NavigationContext';
+import { NotificationProvider } from './context/NotificationContext';
 
-function App() {
-  const [count, setCount] = useState(0)
+import { RoleSwitcherBar } from './components/layout/RoleSwitcherBar';
+import { Navbar } from './components/layout/Navbar';
+import { Footer } from './components/layout/Footer';
+
+// Citizen Pages
+import { CitizenHome } from './pages/citizen/CitizenHome';
+import { CitizenDashboard } from './pages/citizen/CitizenDashboard';
+import { MyApplications } from './pages/citizen/MyApplications';
+import { ApplicationDetail } from './pages/citizen/ApplicationDetail';
+import { CitizenConsentManagement } from './pages/citizen/CitizenConsentManagement';
+import { CitizenNotifications } from './pages/citizen/CitizenNotifications';
+
+// Department Officer & Admin Pages
+import { DepartmentOfficerDashboard } from './pages/officer/DepartmentOfficerDashboard';
+import { DepartmentWorkQueue } from './pages/officer/DepartmentWorkQueue';
+import { DepartmentTaskDetail } from './pages/officer/DepartmentTaskDetail';
+import { DepartmentAdminDashboard } from './pages/deptAdmin/DepartmentAdminDashboard';
+
+// MahaSetu Admin Pages
+import { MahaSetuAdminDashboard } from './pages/mahaAdmin/MahaSetuAdminDashboard';
+import { WorkflowMonitor } from './pages/mahaAdmin/WorkflowMonitor';
+import { ConnectorRegistry } from './pages/mahaAdmin/ConnectorRegistry';
+import { IdentityMappingPage } from './pages/mahaAdmin/IdentityMappingPage';
+import { SemanticMappingTool } from './pages/mahaAdmin/SemanticMappingTool';
+import { ExceptionsFailedTasks } from './pages/mahaAdmin/ExceptionsFailedTasks';
+import { AuditTrailPage } from './pages/mahaAdmin/AuditTrailPage';
+
+import { AuditorDashboard } from './pages/auditor/AuditorDashboard';
+import { LanguageProvider } from './context/LanguageContext';
+
+function AppContent() {
+  const { currentPage } = useNavigation();
+
+  const renderActivePage = () => {
+    switch (currentPage) {
+      // Citizen Routes
+      case 'citizen_home':
+        return <CitizenHome />;
+      case 'citizen_dashboard':
+        return <CitizenDashboard />;
+      case 'citizen_applications':
+        return <MyApplications />;
+      case 'citizen_application_detail':
+        return <ApplicationDetail />;
+      case 'citizen_consent':
+        return <CitizenConsentManagement />;
+      case 'citizen_notifications':
+        return <CitizenNotifications />;
+
+      // Department Officer Routes
+      case 'officer_overview':
+        return <DepartmentOfficerDashboard />;
+      case 'officer_queue':
+        return <DepartmentWorkQueue />;
+      case 'officer_task_detail':
+      case 'officer_workflow':
+        return <DepartmentTaskDetail />;
+
+      // Department Admin Routes
+      case 'deptadmin_overview':
+        return <DepartmentAdminDashboard />;
+      case 'deptadmin_queue':
+        return <DepartmentWorkQueue />;
+      case 'deptadmin_health':
+        return <DepartmentAdminDashboard />;
+
+      // MahaSetu Admin Routes
+      case 'admin_overview':
+        return <MahaSetuAdminDashboard />;
+      case 'admin_workflows':
+        return <WorkflowMonitor />;
+      case 'admin_connectors':
+        return <ConnectorRegistry />;
+      case 'admin_mdm':
+        return <IdentityMappingPage />;
+      case 'admin_semantic':
+        return <SemanticMappingTool />;
+      case 'admin_exceptions':
+        return <ExceptionsFailedTasks />;
+      case 'admin_audit':
+        return <AuditTrailPage />;
+
+      // Auditor Routes
+      case 'auditor_overview':
+        return <AuditorDashboard subTab="overview" />;
+      case 'auditor_audit':
+        return <AuditorDashboard subTab="audit_trail" />;
+      case 'auditor_consent':
+        return <AuditorDashboard subTab="consent_history" />;
+      case 'auditor_workflows':
+        return <WorkflowMonitor />;
+
+      default:
+        return <CitizenHome />;
+    }
+  };
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+    <div className="app-container">
+      <RoleSwitcherBar />
+      <Navbar />
+      <main className="main-content">{renderActivePage()}</main>
+      <Footer />
+    </div>
+  );
 }
 
-export default App
+export default function App() {
+  return (
+    <LanguageProvider>
+      <AuthProvider>
+        <NotificationProvider>
+          <NavigationProvider>
+            <AppContent />
+          </NavigationProvider>
+        </NotificationProvider>
+      </AuthProvider>
+    </LanguageProvider>
+  );
+}
