@@ -2,9 +2,12 @@ const express = require('express');
 
 const { assertDatabaseConfiguration, legacySources, middlewarePool } = require('./config/db');
 const { CdcListener } = require('./services/cdcListener.service');
+const authRoutes = require('./routes/auth.routes');
 const mdmRoutes = require('./routes/mdm.routes');
 const applicationRoutes = require('./routes/application.routes');
 const intelligenceRoutes = require('./routes/intelligenceRoutes');
+const auditRoutes = require('./routes/audit.routes');
+const dataRequestRoutes = require('./routes/dataRequest.routes');
 const {
   initializeEmbeddingModel
 } = require('./services/embeddingService');
@@ -29,18 +32,35 @@ app.get('/', (_req, res) => {
   res.status(200).json({ message: 'Middleware platform server is running' });
 });
 
+app.use('/api/auth', authRoutes);
 app.use('/api/mdm', mdmRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/intelligence', intelligenceRoutes);
+app.use('/api/audit', auditRoutes);
+app.use('/api/data-requests', dataRequestRoutes);
 app.use(notFoundHandler);
 app.use(errorHandler);
 
 async function startServer() {
   assertDatabaseConfiguration();
 
-await initializeEmbeddingModel();
-await initializeSemanticEngine();
+const enableSemanticMapping = process.env.ENABLE_SEMANTIC_MAPPING === 'true';
 
+if (enableSemanticMapping) {
+  const embeddingReady = await initializeEmbeddingModel();
+
+  if (embeddingReady) {
+    await initializeSemanticEngine();
+  } else {
+    console.warn(
+      'Semantic engine disabled because the embedding model is unavailable.'
+    );
+  }
+} else {
+  console.log(
+    'Semantic mapping disabled. Starting MahaSetu without embedding model.'
+  );
+}
   const port = Number(process.env.PORT || '3000');
   if (!Number.isInteger(port) || port < 1 || port > 65535) {
     throw new Error('PORT must be an integer between 1 and 65535.');

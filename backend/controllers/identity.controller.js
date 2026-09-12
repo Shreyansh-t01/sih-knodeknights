@@ -26,9 +26,9 @@ function requiredDepartmentName(value) {
 
 async function upsertIdentity(req, res, next) {
   try {
-    const departmentName = requiredDepartmentName(req.body && req.body.department_name);
-    const legacyId = requiredIdentifier(req.body && req.body.legacy_id, 'legacy_id');
-    const globalId = requiredIdentifier(req.body && req.body.global_id, 'global_id');
+    const departmentName = requiredDepartmentName(req.body && (req.body.department_name || req.body.departmentName));
+    const legacyId = requiredIdentifier(req.body && (req.body.legacy_id || req.body.legacyId), 'legacy_id');
+    const globalId = requiredIdentifier(req.body && (req.body.global_id || req.body.globalId), 'global_id');
 
     const result = await middlewarePool.query(
       `INSERT INTO main_global_db (department_name, legacy_id, global_id)
@@ -45,4 +45,15 @@ async function upsertIdentity(req, res, next) {
   }
 }
 
-module.exports = { upsertIdentity };
+async function listMappings(req, res, next) {
+  try {
+    const result = await middlewarePool.query(
+      'SELECT mapping_id, department_name, legacy_id, global_id FROM main_global_db ORDER BY mapping_id DESC'
+    );
+    return res.status(200).json({ success: true, mappings: result.rows });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+module.exports = { upsertIdentity, listMappings };

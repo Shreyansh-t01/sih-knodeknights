@@ -4,6 +4,7 @@ const { middlewarePool } = require('../config/db');
 const { cdcChannel, legacyIdField, fieldEventMap, normaliseFieldName } = require('../config/cdc');
 const { rulebookService } = require('./rulebook.service');
 const { createApplicationWithTasks } = require('./application.service');
+const { recordAuditEvent } = require('./audit.service');
 
 class CdcPayloadError extends Error {
   constructor(message) {
@@ -157,14 +158,28 @@ class CdcListener {
       await client.query(`LISTEN ${this.channel}`);
       this.reconnectAttempt = 0;
       console.info(`CDC listener active for ${this.departmentName} on PostgreSQL channel "${this.channel}".`);
-    } catch (error) {
-      // A failure after checkout (for example LISTEN permission denied) must
-      // release the client; otherwise each retry would exhaust legacyPool.
-      if (this.client === client) {
-        this.client = undefined;
-        client.release(error);
+       } catch (error) {
+      // Release the checked-out client only if a client was actually obtained.
+      if (client) {
+        if (this.client === client) {
+          this.client = undefined;
+        }
+
+        try {
+          client.release(error);
+        } catch (releaseError) {
+          console.warn(
+            'Unable to release CDC listener client:',
+            releaseError.message
+          );
+        }
       }
-      console.error('Unable to establish CDC listener:', error.message);
+
+      console.error(
+        `Unable to establish CDC listener for ${this.departmentName}:`,
+        error.message
+      );
+
       this.scheduleReconnect();
     }
   }
@@ -193,7 +208,30 @@ class CdcListener {
     const globalId = await resolveGlobalId(this.hubPool, payload.department_name, legacyId);
     const createdApplications = [];
 
+    await recordAuditEvent(this.hubPool, {
+      globalId,
+      department: payload.department_name,
+      event: triggerEvents.join(','),
+      action: 'CDC_EVENT_RECEIVED',
+      actor: 'CDC Listener',
+    });
+
     for (const triggerEvent of triggerEvents) {
+      // Idempotency check: prevent duplicate applications in PENDING_CONSENT
+      const existingApp = await this.hubPool.query(
+        `SELECT uarn FROM applications
+         WHERE global_id = $1 AND trigger_event = $2 AND overall_status = 'PENDING_CONSENT'
+         LIMIT 1`,
+        [globalId, triggerEvent],
+      );
+
+      if (existingApp.rows.length > 0) {
+        console.warn(
+          `Application already exists for ${globalId} and ${triggerEvent} (UARN: ${existingApp.rows[0].uarn}) in PENDING_CONSENT status. Skipping duplicate creation.`,
+        );
+        continue;
+      }
+
       const targets = this.rulebook.getTargets(triggerEvent);
       if (targets.length === 0) {
         console.warn(`No target departments configured for trigger event "${triggerEvent}".`);
@@ -207,6 +245,15 @@ class CdcListener {
       });
       createdApplications.push(result);
       console.info(`Created ${result.application.uarn} for ${triggerEvent} with ${result.tasks.length} task(s).`);
+
+      await recordAuditEvent(this.hubPool, {
+        uarn: result.application.uarn,
+        globalId,
+        department: payload.department_name,
+        event: triggerEvent,
+        action: 'UARN_CREATED',
+        actor: 'MahaSetu Engine',
+      });
     }
 
     return createdApplications;

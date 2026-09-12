@@ -26,7 +26,7 @@ function createPool(connectionString, label) {
     connectionString,
     max: positiveInteger('DB_POOL_MAX', 10),
     idleTimeoutMillis: positiveInteger('DB_IDLE_TIMEOUT_MS', 30_000),
-    connectionTimeoutMillis: positiveInteger('DB_CONNECTION_TIMEOUT_MS', 10_000),
+    connectionTimeoutMillis: positiveInteger('DB_CONNECTION_TIMEOUT_MS', 30_000),
     application_name: `middleware-${label}`,
   };
 

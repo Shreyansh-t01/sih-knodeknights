@@ -3,22 +3,31 @@ const { pipeline } = require("@huggingface/transformers");
 let embeddingModel = null;
 
 async function initializeEmbeddingModel() {
-
   console.log("Loading embedding model...");
 
-  embeddingModel = await pipeline(
-    "feature-extraction",
-    "Xenova/all-MiniLM-L6-v2"
-  );
+  try {
+    embeddingModel = await pipeline(
+      "feature-extraction",
+      "Xenova/all-MiniLM-L6-v2"
+    );
 
-  console.log("Embedding model loaded successfully.");
+    console.log("Embedding model loaded successfully.");
+    return true;
+  } catch (error) {
+    console.warn(
+      "Embedding model could not be loaded. Semantic mapping will be unavailable."
+    );
+    console.warn(error.message);
+
+    embeddingModel = null;
+    return false;
+  }
 }
 
 async function generateEmbedding(text) {
-
   if (!embeddingModel) {
     throw new Error(
-      "Embedding model has not been initialized."
+      "Embedding model is unavailable. Semantic mapping cannot be performed."
     );
   }
 
@@ -29,7 +38,13 @@ async function generateEmbedding(text) {
 
   return output.tolist()[0];
 }
+
+function isEmbeddingModelReady() {
+  return embeddingModel !== null;
+}
+
 module.exports = {
   initializeEmbeddingModel,
-  generateEmbedding
+  generateEmbedding,
+  isEmbeddingModelReady
 };

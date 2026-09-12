@@ -54,6 +54,27 @@ CREATE INDEX IF NOT EXISTS applications_pending_by_global_id_idx
 CREATE INDEX IF NOT EXISTS application_tasks_by_uarn_idx
   ON application_tasks (uarn);
 
+-- AUDIT TRAIL
+-- Immutable event history for CDC detection, identity mapping,
+-- consent decisions, and task state transitions.
+-- No sensitive citizen PII is stored here.
+CREATE TABLE IF NOT EXISTS audit_logs (
+  id SERIAL PRIMARY KEY,
+  uarn VARCHAR,
+  global_id VARCHAR,
+  department VARCHAR,
+  event VARCHAR NOT NULL,
+  action VARCHAR NOT NULL,
+  actor VARCHAR DEFAULT 'MahaSetu',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS audit_logs_by_uarn_idx
+  ON audit_logs (uarn);
+
+CREATE INDEX IF NOT EXISTS audit_logs_by_created_idx
+  ON audit_logs (created_at DESC);
+
 COMMIT;
 
 -- SOURCE DATABASE REQUIREMENT (legacyPool; DOCUMENTATION ONLY)
