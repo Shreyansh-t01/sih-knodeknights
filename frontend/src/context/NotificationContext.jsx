@@ -7,11 +7,35 @@ export function NotificationProvider({ children }) {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Load read notification IDs from localStorage
+  const getReadIds = () => {
+    try {
+      const stored = typeof window !== 'undefined' ? localStorage.getItem('mahasetu_read_notifications') : null;
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  };
+
+  const saveReadIds = (ids) => {
+    try {
+      localStorage.setItem('mahasetu_read_notifications', JSON.stringify(ids));
+    } catch (e) {
+      console.error('Failed to save read notification IDs', e);
+    }
+  };
+
   const fetchNotifications = async () => {
     try {
       setLoading(true);
       const data = await notificationsApi.getNotifications();
-      setNotifications(data);
+      const readIds = getReadIds();
+      // Apply persisted read states
+      const merged = (data || []).map((item) => ({
+        ...item,
+        read: readIds.includes(item.id) ? true : item.read,
+      }));
+      setNotifications(merged);
     } catch (err) {
       console.error('Failed to load notifications:', err);
     } finally {
@@ -27,11 +51,19 @@ export function NotificationProvider({ children }) {
     setNotifications((prev) =>
       prev.map((item) => (item.id === id ? { ...item, read: true } : item))
     );
+    const readIds = getReadIds();
+    if (!readIds.includes(id)) {
+      saveReadIds([...readIds, id]);
+    }
     await notificationsApi.markAsRead(id);
   };
 
   const markAllAsRead = async () => {
-    setNotifications((prev) => prev.map((item) => ({ ...item, read: true })));
+    setNotifications((prev) => {
+      const allIds = prev.map((n) => n.id);
+      saveReadIds(allIds);
+      return prev.map((item) => ({ ...item, read: true }));
+    });
     await notificationsApi.markAllAsRead();
   };
 

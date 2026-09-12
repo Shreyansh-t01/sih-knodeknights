@@ -19,6 +19,12 @@ export class ApiError extends Error {
  * Normalizes backend error responses into friendly messages.
  */
 function normalizeErrorMessage(status, backendError) {
+  if (status === 401) {
+    return backendError?.error || 'Authentication required. Please authenticate via Unified Identity / SSO.';
+  }
+  if (status === 403) {
+    return backendError?.error || backendError?.message || 'Access Denied: Role-based access control violation.';
+  }
   if (status === 404) {
     return 'This application could not be found.';
   }
@@ -40,6 +46,11 @@ export async function request(endpoint, options = {}) {
     'Content-Type': 'application/json',
     Accept: 'application/json',
   };
+
+  const token = typeof window !== 'undefined' ? localStorage.getItem('mahasetu_token') : null;
+  if (token) {
+    defaultHeaders['Authorization'] = `Bearer ${token}`;
+  }
 
   const config = {
     ...options,
@@ -90,6 +101,12 @@ export const apiClient = {
     request(endpoint, {
       ...options,
       method: 'PUT',
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    }),
+  patch: (endpoint, body, options = {}) =>
+    request(endpoint, {
+      ...options,
+      method: 'PATCH',
       body: body !== undefined ? JSON.stringify(body) : undefined,
     }),
   delete: (endpoint, options = {}) => request(endpoint, { ...options, method: 'DELETE' }),

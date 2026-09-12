@@ -21,4 +21,13 @@ export const mdmApi = {
     });
     return response?.data;
   },
+
+  /**
+   * GET /api/mdm/mappings
+   * Retrieves all live identity mappings from main_global_db in PostgreSQL.
+   */
+  getMappings: async () => {
+    const response = await apiClient.get('/api/mdm/mappings');
+    return response?.mappings || response?.data?.mappings || [];
+  },
 };

@@ -13,21 +13,38 @@ import {
 } from 'lucide-react';
 
 export function IdentityMappingPage() {
-  const [departmentName, setDepartmentName] = useState('dept_1');
-  const [legacyId, setLegacyId] = useState('102');
-  const [globalId, setGlobalId] = useState('MAHA-TEST-102');
+  const [departmentName, setDepartmentName] = useState('Revenue_Department');
+  const [legacyId, setLegacyId] = useState('');
+  const [globalId, setGlobalId] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loadingMappings, setLoadingMappings] = useState(true);
   const [successMsg, setSuccessMsg] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
 
-  const [recentMappings, setRecentMappings] = useState([
-    { mapping_id: 1, department_name: 'dept_1', legacy_id: '102', global_id: 'MAHA-TEST-102', created_at: 'Just now' },
-    { mapping_id: 2, department_name: 'Municipal_Corporation', legacy_id: 'MC-4019', global_id: 'MAHA-TEST-102', created_at: 'Yesterday' },
-    { mapping_id: 3, department_name: 'Transport_Department', legacy_id: 'MH-02-DL901', global_id: 'MAHA-TEST-103', created_at: '2 days ago' },
-  ]);
+  const [recentMappings, setRecentMappings] = useState([]);
+
+  const loadMappings = async () => {
+    try {
+      setLoadingMappings(true);
+      const data = await mdmApi.getMappings();
+      setRecentMappings(data || []);
+    } catch (err) {
+      console.warn('Failed to load real MDM mappings:', err);
+    } finally {
+      setLoadingMappings(false);
+    }
+  };
+
+  useEffect(() => {
+    loadMappings();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!legacyId.trim() || !globalId.trim()) {
+      setErrorMsg('Please enter both legacy ID and Global ID.');
+      return;
+    }
     try {
       setIsSubmitting(true);
       setErrorMsg(null);
@@ -35,23 +52,14 @@ export function IdentityMappingPage() {
 
       const result = await mdmApi.createIdentityMapping({
         department_name: departmentName,
-        legacy_id: legacyId,
-        global_id: globalId,
+        legacy_id: legacyId.trim(),
+        global_id: globalId.trim(),
       });
 
-      setSuccessMsg('Identity mapping saved.');
-      if (result) {
-        setRecentMappings((prev) => [
-          {
-            mapping_id: result.mapping_id || Date.now(),
-            department_name: result.department_name || departmentName,
-            legacy_id: result.legacy_id || legacyId,
-            global_id: result.global_id || globalId,
-            created_at: 'Just now',
-          },
-          ...prev,
-        ]);
-      }
+      setSuccessMsg('Identity mapping saved successfully into PostgreSQL main_global_db.');
+      setLegacyId('');
+      setGlobalId('');
+      loadMappings();
     } catch (err) {
       console.error('MDM mapping error:', err);
       setErrorMsg(err.message || 'Failed to save identity mapping.');

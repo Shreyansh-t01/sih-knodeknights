@@ -18,6 +18,9 @@ import {
   Activity,
   Check,
   Copy,
+  Play,
+  XCircle,
+  AlertTriangle,
 } from 'lucide-react';
 
 export function DepartmentTaskDetail() {
@@ -28,12 +31,36 @@ export function DepartmentTaskDetail() {
   const [taskData, setTaskData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [updating, setUpdating] = useState(false);
+  const [actionError, setActionError] = useState(null);
+  const [connectorFeedback, setConnectorFeedback] = useState(null);
+
+  const handleUpdateStatus = async (newStatus, executeConnector = false) => {
+    if (!taskData?.taskId) return;
+    try {
+      setUpdating(true);
+      setActionError(null);
+      setConnectorFeedback(null);
+      const res = await departmentApi.updateTaskStatus(taskData.taskId, newStatus, { executeConnector });
+      if (res?.data?.connector) {
+        setConnectorFeedback(res.data.connector);
+      }
+      // Reload task data to reflect updated status
+      const data = await departmentApi.getTaskDetails(uarn, activeDepartment);
+      setTaskData(data);
+    } catch (err) {
+      console.error('Failed to update task status:', err);
+      setActionError(err.response?.data?.error?.message || err.message || 'Failed to update task status');
+    } finally {
+      setUpdating(false);
+    }
+  };
 
   useEffect(() => {
     const loadTask = async () => {
       try {
         setLoading(true);
-        const data = await departmentApi.getTaskDetails(uarn);
+        const data = await departmentApi.getTaskDetails(uarn, activeDepartment);
         setTaskData(data);
       } catch (err) {
         console.error('Failed to load task details:', err);
@@ -160,6 +187,169 @@ export function DepartmentTaskDetail() {
             <strong>Automated Orchestration</strong>
           </div>
         </div>
+      </div>
+
+      {/* OFFICER ACTION & EXECUTION SECTION */}
+      <div className="card" style={{ padding: '20px', marginBottom: '24px', borderLeft: '4px solid var(--primary)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '12px' }}>
+          <div>
+            <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>
+              Officer Actions & Execution
+            </h3>
+            <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+              Execute or advance the state of this departmental synchronization task.
+            </span>
+          </div>
+          <div>
+            <StatusBadge status={status} type="task" overrideRole="DEPARTMENT_OFFICER" />
+          </div>
+        </div>
+
+        {actionError && (
+          <div className="alert alert-danger" style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <AlertTriangle size={16} />
+            <span>{actionError}</span>
+          </div>
+        )}
+
+        {connectorFeedback && (
+          <div
+            style={{
+              marginBottom: '16px',
+              padding: '16px',
+              borderRadius: '8px',
+              border: `1px solid ${connectorFeedback.success ? '#86efac' : '#fca5a5'}`,
+              background: connectorFeedback.success ? '#f0fdf4' : '#fef2f2',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {connectorFeedback.success
+                  ? <CheckCircle2 size={16} color="#16a34a" />
+                  : <XCircle size={16} color="#dc2626" />
+                }
+                <strong style={{ fontSize: '14px', color: connectorFeedback.success ? '#166534' : '#991b1b' }}>
+                  Connector Execution — {connectorFeedback.success ? 'Success' : 'Failed'}
+                </strong>
+              </div>
+              <span
+                style={{
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  padding: '3px 10px',
+                  borderRadius: '12px',
+                  background: connectorFeedback.connectorType === 'RPA' ? '#7c3aed' : '#2563eb',
+                  color: '#ffffff',
+                  letterSpacing: '0.5px',
+                }}
+              >
+                {connectorFeedback.connectorType === 'RPA' ? '🤖 RPA Connector' : '🔗 API Connector'}
+              </span>
+            </div>
+            <p style={{ fontSize: '13px', color: '#374151', margin: '4px 0 8px' }}>
+              {connectorFeedback.message}
+            </p>
+            <div style={{ display: 'flex', gap: '16px', fontSize: '12px', color: '#6b7280' }}>
+              {connectorFeedback.durationMs != null && (
+                <span>⏱ Duration: <strong>{connectorFeedback.durationMs}ms</strong></span>
+              )}
+              {connectorFeedback.executedAt && (
+                <span>🕐 {new Date(connectorFeedback.executedAt).toLocaleTimeString()}</span>
+              )}
+            </div>
+          </div>
+        )}
+
+        {status === 'READY' && (
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
+            <button
+              type="button"
+              className="btn btn-primary"
+              disabled={updating}
+              onClick={() => handleUpdateStatus('COMPLETED', false)}
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#16a34a', borderColor: '#16a34a' }}
+            >
+              <CheckCircle2 size={16} />
+              <span>{updating ? 'Verifying...' : 'Verify & Approve Task'}</span>
+            </button>
+
+            <button
+              type="button"
+              className="btn btn-secondary"
+              disabled={updating}
+              onClick={() => handleUpdateStatus('PROCESSING', false)}
+              style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+            >
+              <Play size={16} />
+              <span>Mark as In-Progress</span>
+            </button>
+
+            <button
+              type="button"
+              className="btn btn-danger"
+              disabled={updating}
+              onClick={() => handleUpdateStatus('FAILED', false)}
+              style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+            >
+              <XCircle size={16} />
+              <span>Reject Task</span>
+            </button>
+          </div>
+        )}
+
+        {status === 'PROCESSING' && (
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
+            <button
+              type="button"
+              className="btn btn-primary"
+              disabled={updating}
+              onClick={() => handleUpdateStatus('COMPLETED', false)}
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#16a34a', borderColor: '#16a34a' }}
+            >
+              <CheckCircle2 size={16} />
+              <span>{updating ? 'Updating...' : 'Mark as Completed'}</span>
+            </button>
+
+            <button
+              type="button"
+              className="btn btn-danger"
+              disabled={updating}
+              onClick={() => handleUpdateStatus('FAILED', false)}
+              style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+            >
+              <XCircle size={16} />
+              <span>{updating ? 'Updating...' : 'Mark as Failed'}</span>
+            </button>
+          </div>
+        )}
+
+        {status === 'COMPLETED' && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#16a34a', fontSize: '14px', fontWeight: 600 }}>
+            <CheckCircle2 size={18} />
+            <span>Task completed. Department records have been successfully synchronized.</span>
+          </div>
+        )}
+
+        {status === 'WAITING' && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#ca8a04', fontSize: '14px' }}>
+            <Clock size={18} />
+            <span>Awaiting citizen consent. Execution will unlock once the citizen approves the request.</span>
+          </div>
+        )}
+
+        {status === 'CANCELLED' && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#64748b', fontSize: '14px' }}>
+            <XCircle size={18} />
+            <span>Task was cancelled because the citizen rejected the synchronization request.</span>
+          </div>
+        )}
+
+        {status === 'FAILED' && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#dc2626', fontSize: '14px' }}>
+            <AlertTriangle size={18} />
+            <span>Task execution failed during departmental synchronization.</span>
+          </div>
+        )}
       </div>
 
       {/* TECHNICAL UX SECTION: DATA MAPPING */}

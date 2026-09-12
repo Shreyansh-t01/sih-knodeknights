@@ -21,6 +21,7 @@ export const EVENT_LABELS = {
   TASK_CREATED: 'Department task created',
   TASK_READY: 'Task ready',
   TASK_CANCELLED: 'Task cancelled',
+  DATA_RETRIEVAL: 'On-demand data retrieval',
 };
 
 export function AuditTrailPage({ isAuditor = false }) {

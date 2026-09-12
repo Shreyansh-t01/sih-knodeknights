@@ -56,10 +56,10 @@ export function GovEmblem({ size = 48, showText = false, light = false }) {
       {showText && (
         <div style={{ textAlign: 'left', lineHeight: 1.15 }}>
           <div style={{ fontSize: '13px', fontWeight: 800, color: light ? '#f8fafc' : '#0b2545', letterSpacing: '0.2px' }}>
-            महाराष्ट्र शासन
+            भारत सरकार
           </div>
           <div style={{ fontSize: '11px', fontWeight: 600, color: light ? '#cbd5e1' : '#475569', letterSpacing: '0.3px', textTransform: 'uppercase' }}>
-            Government of Maharashtra
+            Government of India
           </div>
         </div>
       )}

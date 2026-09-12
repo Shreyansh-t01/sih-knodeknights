@@ -51,8 +51,8 @@ export function DepartmentWorkQueue() {
     if (filterStatus === 'ALL') return true;
     if (filterStatus === 'READY') return item.status === 'READY';
     if (filterStatus === 'WAITING') return item.status === 'WAITING';
-    if (filterStatus === 'PROCESSING') return item.status === 'RUNNING';
-    if (filterStatus === 'COMPLETED') return item.status === 'SUCCESS';
+    if (filterStatus === 'PROCESSING') return item.status === 'PROCESSING' || item.status === 'RUNNING';
+    if (filterStatus === 'COMPLETED') return item.status === 'COMPLETED' || item.status === 'SUCCESS';
     if (filterStatus === 'FAILED') return item.status === 'FAILED';
     if (filterStatus === 'CANCELLED') return item.status === 'CANCELLED';
     return true;

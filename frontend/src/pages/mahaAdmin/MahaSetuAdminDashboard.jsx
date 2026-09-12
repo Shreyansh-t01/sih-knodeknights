@@ -74,10 +74,10 @@ export function MahaSetuAdminDashboard() {
         <>
           {/* Top 6 KPI Summary Cards */}
           <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
-            <div className="stat-card" onClick={() => navigate('admin_connectors')} style={{ cursor: 'pointer' }}>
+            <div className="stat-card">
               <div className="stat-info">
                 <div className="stat-label">Connected Departments</div>
-                <div className="stat-value">{metrics?.connectedDepartments || 16}</div>
+                <div className="stat-value">{metrics?.connectedDepartments || 0}</div>
               </div>
               <div className="stat-icon-wrapper" style={{ background: '#eff6ff', color: '#2563eb' }}>
                 <Network size={20} />
@@ -87,7 +87,7 @@ export function MahaSetuAdminDashboard() {
             <div className="stat-card" onClick={() => navigate('admin_workflows')} style={{ cursor: 'pointer' }}>
               <div className="stat-info">
                 <div className="stat-label">Active Workflows</div>
-                <div className="stat-value">{metrics?.activeWorkflows || 42}</div>
+                <div className="stat-value">{metrics?.activeWorkflows || 0}</div>
               </div>
               <div className="stat-icon-wrapper" style={{ background: '#faf5ff', color: '#9333ea' }}>
                 <GitMerge size={20} />
@@ -98,7 +98,7 @@ export function MahaSetuAdminDashboard() {
               <div className="stat-info">
                 <div className="stat-label">Pending Consent</div>
                 <div className="stat-value" style={{ color: '#d97706' }}>
-                  {metrics?.pendingConsent || 7}
+                  {metrics?.pendingConsent || 0}
                 </div>
               </div>
               <div className="stat-icon-wrapper" style={{ background: '#fef3c7', color: '#d97706' }}>
@@ -110,7 +110,7 @@ export function MahaSetuAdminDashboard() {
               <div className="stat-info">
                 <div className="stat-label">Ready Tasks</div>
                 <div className="stat-value" style={{ color: '#2563eb' }}>
-                  {metrics?.readyTasks || 89}
+                  {metrics?.readyTasks || 0}
                 </div>
               </div>
               <div className="stat-icon-wrapper" style={{ background: '#dbeafe', color: '#2563eb' }}>
@@ -118,22 +118,22 @@ export function MahaSetuAdminDashboard() {
               </div>
             </div>
 
-            <div className="stat-card" onClick={() => navigate('admin_exceptions')} style={{ cursor: 'pointer' }}>
+            <div className="stat-card">
               <div className="stat-info">
-                <div className="stat-label">Exceptions / Failed</div>
-                <div className="stat-value" style={{ color: '#dc2626' }}>
-                  {metrics?.failedTasks || 3}
+                <div className="stat-label">Completed Tasks</div>
+                <div className="stat-value" style={{ color: '#059669' }}>
+                  {metrics?.completedTasks || 0}
                 </div>
               </div>
-              <div className="stat-icon-wrapper" style={{ background: '#ffe4e6', color: '#dc2626' }}>
-                <AlertTriangle size={20} />
+              <div className="stat-icon-wrapper" style={{ background: '#d1fae5', color: '#059669' }}>
+                <CheckCircle2 size={20} />
               </div>
             </div>
 
-            <div className="stat-card">
+            <div className="stat-card" onClick={() => navigate('admin_audit')} style={{ cursor: 'pointer' }}>
               <div className="stat-info">
-                <div className="stat-label">Events Today</div>
-                <div className="stat-value">{metrics?.eventsToday || 1420}</div>
+                <div className="stat-label">Platform Events</div>
+                <div className="stat-value">{metrics?.eventsToday || 0}</div>
               </div>
               <div className="stat-icon-wrapper" style={{ background: '#f0fdf4', color: '#16a34a' }}>
                 <Activity size={20} />
@@ -164,27 +164,10 @@ export function MahaSetuAdminDashboard() {
                   <h3 style={{ fontSize: '16px', fontWeight: 600 }}>Workflow Monitor</h3>
                 </div>
                 <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '14px' }}>
-                  Observe end-to-end event propagation, consent status, and multi-department task readiness.
+                  Observe end-to-end event propagation, consent status, and multi-department task readiness from the live database.
                 </p>
                 <span style={{ fontSize: '13px', fontWeight: 600, color: '#2563eb', display: 'flex', alignItems: 'center', gap: '4px' }}>
                   Open Monitor <ArrowRight size={14} />
-                </span>
-              </div>
-
-              <div
-                className="card"
-                style={{ padding: '20px', cursor: 'pointer' }}
-                onClick={() => navigate('admin_connectors')}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                  <Cable size={20} color="#059669" />
-                  <h3 style={{ fontSize: '16px', fontWeight: 600 }}>Connector Registry</h3>
-                </div>
-                <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '14px' }}>
-                  Manage API First integrations and RPA connectors for legacy departments.
-                </p>
-                <span style={{ fontSize: '13px', fontWeight: 600, color: '#059669', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  Inspect Connectors <ArrowRight size={14} />
                 </span>
               </div>
 
@@ -198,7 +181,7 @@ export function MahaSetuAdminDashboard() {
                   <h3 style={{ fontSize: '16px', fontWeight: 600 }}>MDM Identity Mapping</h3>
                 </div>
                 <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '14px' }}>
-                  Map departmental legacy identities to unified citizen Global IDs via live backend MDM API.
+                  Map departmental legacy identities to unified citizen Global IDs via live backend MDM database.
                 </p>
                 <span style={{ fontSize: '13px', fontWeight: 600, color: '#2563eb', display: 'flex', alignItems: 'center', gap: '4px' }}>
                   Live MDM Tool <ArrowRight size={14} />
@@ -225,23 +208,6 @@ export function MahaSetuAdminDashboard() {
               <div
                 className="card"
                 style={{ padding: '20px', cursor: 'pointer' }}
-                onClick={() => navigate('admin_exceptions')}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                  <AlertTriangle size={20} color="#dc2626" />
-                  <h3 style={{ fontSize: '16px', fontWeight: 600 }}>Exceptions & Failures</h3>
-                </div>
-                <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '14px' }}>
-                  Inspect timeouts, format mismatches, and manual review triggers.
-                </p>
-                <span style={{ fontSize: '13px', fontWeight: 600, color: '#dc2626', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  View Exceptions <ArrowRight size={14} />
-                </span>
-              </div>
-
-              <div
-                className="card"
-                style={{ padding: '20px', cursor: 'pointer' }}
                 onClick={() => navigate('admin_audit')}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
@@ -249,7 +215,7 @@ export function MahaSetuAdminDashboard() {
                   <h3 style={{ fontSize: '16px', fontWeight: 600 }}>Audit Trail</h3>
                 </div>
                 <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '14px' }}>
-                  Full lifecycle event trace from CDC event detection to departmental dispatch.
+                  Full lifecycle event trace from CDC event detection to departmental dispatch from PostgreSQL.
                 </p>
                 <span style={{ fontSize: '13px', fontWeight: 600, color: '#d97706', display: 'flex', alignItems: 'center', gap: '4px' }}>
                   View Audit Logs <ArrowRight size={14} />

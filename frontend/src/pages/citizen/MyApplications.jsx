@@ -16,10 +16,11 @@ import {
   AlertCircle,
   RefreshCw,
   Eye,
+  Building,
 } from 'lucide-react';
 
 export function MyApplications() {
-  const { globalId, localDecisions } = useAuth();
+  const { globalId } = useAuth();
   const { navigate } = useNavigation();
 
   const [activeTab, setActiveTab] = useState('ALL');
@@ -28,71 +29,16 @@ export function MyApplications() {
   const [error, setError] = useState(null);
   const [selectedAppForReview, setSelectedAppForReview] = useState(null);
 
-  const fetchApplications = async () => {
+    const fetchApplications = async () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await applicationsApi.getPendingApplications(globalId);
-      const backendPending = data?.applications || [];
 
-      // Combine with locally approved/rejected decisions so user can track full history
-      const localApps = Object.entries(localDecisions).map(([uarn, dec]) => {
-        const existing = backendPending.find((b) => b.uarn === uarn);
-        if (existing) {
-          return {
-            ...existing,
-            overall_status: dec.decision,
-            tasks: (existing.tasks || []).map((t) => ({
-              ...t,
-              status: dec.decision === 'APPROVED' ? 'READY' : 'CANCELLED',
-            })),
-          };
-        }
-        return (
-          dec.applicationData || {
-            uarn,
-            global_id: globalId,
-            trigger_event: 'Address_Update',
-            overall_status: dec.decision,
-            created_at: dec.updatedAt,
-            tasks: [
-              { task_id: 1, target_department: 'Revenue_Department', status: dec.decision === 'APPROVED' ? 'READY' : 'CANCELLED' },
-              { task_id: 2, target_department: 'Municipal_Corporation', status: dec.decision === 'APPROVED' ? 'READY' : 'CANCELLED' },
-            ],
-          }
-        );
-      });
+      const data = await applicationsApi.getCitizenApplications(globalId);
 
-      // Filter out raw pending if they have been decided locally
-      const pendingFiltered = backendPending.filter((b) => !localDecisions[b.uarn]);
+      const backendApplications = data?.applications || [];
 
-      // Add a couple of realistic historical completed/in-progress applications for demo completeness
-      const historical = [
-        {
-          uarn: 'UARN-20260814102209-A45F99018B72CD81',
-          global_id: globalId,
-          trigger_event: 'Income_Certificate_Renewal',
-          overall_status: 'APPROVED',
-          created_at: '2026-08-14T10:22:09.000Z',
-          tasks: [
-            { task_id: 1, target_department: 'Revenue_Department', status: 'READY' },
-            { task_id: 2, target_department: 'Scholarship_Portal', status: 'READY' },
-          ],
-        },
-        {
-          uarn: 'UARN-20260710091522-C88D33129A01EF44',
-          global_id: globalId,
-          trigger_event: 'Electricity_Connection_Verification',
-          overall_status: 'APPROVED',
-          created_at: '2026-07-10T09:15:22.000Z',
-          tasks: [
-            { task_id: 1, target_department: 'Electricity_Department', status: 'READY' },
-            { task_id: 2, target_department: 'Municipal_Corporation', status: 'READY' },
-          ],
-        },
-      ];
-
-      setApplications([...pendingFiltered, ...localApps, ...historical]);
+      setApplications(backendApplications);
     } catch (err) {
       console.error('Error fetching applications:', err);
       setError(err.message || 'Unable to load applications.');
@@ -100,10 +46,9 @@ export function MyApplications() {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     fetchApplications();
-  }, [globalId, localDecisions]);
+  }, [globalId]);
 
   // Tab filtering logic
   const filteredApplications = applications.filter((app) => {
@@ -225,17 +170,44 @@ export function MyApplications() {
                   <FileText size={20} />
                 </div>
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '2px' }}>
-                    <span style={{ fontWeight: 700, fontSize: '15px', color: 'var(--text-main)' }}>
-                      {formatTriggerEvent(app.trigger_event)}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
+                    <span style={{ fontWeight: 700, fontSize: '16px', color: 'var(--text-main)' }}>
+                      {app.uarn.includes('MMVY') || app.trigger_event === 'Scholarship_Application'
+                        ? 'Mukhyamantri Medhavi Vidyarthi Yojana (MMVY)'
+                        : formatTriggerEvent(app.trigger_event)}
                     </span>
                     <StatusBadge status={app.overall_status} type="application" overrideRole="CITIZEN" />
                   </div>
-                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
-                    <span>Application ID: <code>{app.uarn}</code></span>
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'flex', gap: '14px', flexWrap: 'wrap', marginBottom: '6px' }}>
+                    <span>Application UARN: <code>{app.uarn}</code></span>
                     <span>Created: {formatDate(app.created_at)}</span>
-                    <span>Departments: {app.tasks?.length || 0}</span>
                   </div>
+                  {/* Department status pills */}
+                  {app.tasks && app.tasks.length > 0 && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
+                      {app.tasks.map((t) => (
+                        <span
+                          key={t.task_id}
+                          style={{
+                            fontSize: '11px',
+                            background: '#f8fafc',
+                            border: '1px solid #e2e8f0',
+                            borderRadius: '4px',
+                            padding: '2px 8px',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                          }}
+                        >
+                          <Building size={11} color="#64748b" />
+                          <span>{formatDepartmentName(t.target_department)}:</span>
+                          <strong style={{ color: t.status === 'COMPLETED' ? '#16a34a' : t.status === 'READY' ? '#2563eb' : '#d97706' }}>
+                            {t.status}
+                          </strong>
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 

@@ -29,22 +29,30 @@ export function CitizenDashboard() {
   const { t } = useLanguage();
 
   const [pendingApplications, setPendingApplications] = useState([]);
+  const [allApplications, setAllApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedAppForReview, setSelectedAppForReview] = useState(null);
 
-  const fetchPending = async () => {
+  const fetchApplicationsData = async () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await applicationsApi.getPendingApplications(globalId);
-      // Filter out any locally approved/rejected during current session so UI updates immediately
-      const list = (data?.applications || []).filter(
-        (app) => !localDecisions[app.uarn]
-      );
-      setPendingApplications(list);
+      const data = await applicationsApi.getCitizenApplications(globalId);
+      const apps = data?.applications || [];
+      setAllApplications(apps);
+
+      // Filter pending consent based on database status and local decisions
+      const pendingList = apps.filter((app) => {
+        const local = localDecisions[app.uarn];
+        if (local) {
+          return local.decision === 'PENDING_CONSENT';
+        }
+        return app.overall_status === 'PENDING_CONSENT';
+      });
+      setPendingApplications(pendingList);
     } catch (err) {
-      console.error('Fetch pending error:', err);
+      console.error('Fetch citizen applications error:', err);
       setError(err.message || "We couldn't load your applications.");
     } finally {
       setLoading(false);
@@ -52,13 +60,19 @@ export function CitizenDashboard() {
   };
 
   useEffect(() => {
-    fetchPending();
+    fetchApplicationsData();
   }, [globalId, localDecisions]);
 
   const actionRequiredCount = pendingApplications.length;
-  const approvedCount = Object.values(localDecisions).filter(
-    (d) => d.decision === 'APPROVED'
-  ).length;
+  const approvedCount = allApplications.filter((app) => {
+    const local = localDecisions[app.uarn];
+    if (local) {
+      return local.decision === 'APPROVED';
+    }
+    return app.overall_status === 'APPROVED' || app.overall_status === 'PROCESSING';
+  }).length;
+  const completedCount = allApplications.filter((app) => app.overall_status === 'COMPLETED').length;
+  const totalActiveApps = allApplications.filter((app) => app.overall_status !== 'REJECTED').length;
 
   const handleReviewClick = (app) => {
     setSelectedAppForReview(app);
@@ -137,7 +151,7 @@ export function CitizenDashboard() {
         <div className="stat-card" onClick={() => navigate('citizen_applications')} style={{ cursor: 'pointer' }}>
           <div className="stat-info">
             <div className="stat-label">{t('stat_active_apps')}</div>
-            <div className="stat-value">{actionRequiredCount + approvedCount + 1}</div>
+            <div className="stat-value">{totalActiveApps}</div>
           </div>
           <div className="stat-icon-wrapper" style={{ background: '#eff6ff', color: '#2563eb' }}>
             <FileText size={22} />
@@ -159,7 +173,7 @@ export function CitizenDashboard() {
         <div className="stat-card">
           <div className="stat-info">
             <div className="stat-label">{t('stat_completed')}</div>
-            <div className="stat-value">{approvedCount > 0 ? approvedCount : 2}</div>
+            <div className="stat-value">{completedCount > 0 ? completedCount : approvedCount}</div>
           </div>
           <div className="stat-icon-wrapper" style={{ background: '#d1fae5', color: '#059669' }}>
             <CheckCircle2 size={22} />
@@ -195,7 +209,7 @@ export function CitizenDashboard() {
           <button
             type="button"
             className="btn btn-secondary btn-sm"
-            onClick={fetchPending}
+            onClick={fetchApplicationsData}
             disabled={loading}
             title="Refresh pending applications"
           >
@@ -221,7 +235,7 @@ export function CitizenDashboard() {
             <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '16px' }}>
               {error}
             </p>
-            <button type="button" className="btn btn-primary" onClick={fetchPending}>
+            <button type="button" className="btn btn-primary" onClick={fetchApplicationsData}>
               Try Again
             </button>
           </div>
@@ -365,6 +379,100 @@ export function CitizenDashboard() {
                       <span>{t('review_request')}</span>
                       <ArrowRight size={16} />
                     </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* ACTIVE GOVERNMENT APPLICATIONS & INTEROPERABILITY PROGRESS */}
+      <div style={{ textAlign: 'left', marginBottom: '32px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <FileText size={20} color="#2563eb" />
+            <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-main)', margin: 0 }}>
+              {t('my_applications', 'My Connected Applications')} ({allApplications.length})
+            </h2>
+          </div>
+
+          <button
+            type="button"
+            className="btn btn-secondary btn-sm"
+            onClick={() => navigate('citizen_applications')}
+          >
+            <span>{t('view_all', 'View All Applications')}</span>
+            <ArrowRight size={14} />
+          </button>
+        </div>
+
+        {allApplications.length === 0 ? (
+          <div className="card" style={{ padding: '32px', textAlign: 'center' }}>
+            <FileText size={36} color="#94a3b8" style={{ margin: '0 auto 10px' }} />
+            <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>
+              No applications currently registered. When you submit applications on government portals (e.g. MMVY), they will stream here automatically.
+            </p>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            {allApplications.map((app) => {
+              const isMmvy = app.uarn.includes('MMVY') || app.trigger_event === 'Scholarship_Application';
+              const title = isMmvy ? 'Mukhyamantri Medhavi Vidyarthi Yojana (MMVY)' : formatTriggerEvent(app.trigger_event);
+
+              return (
+                <div key={app.uarn} className="card" style={{ padding: '20px', textAlign: 'left' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', marginBottom: '14px' }}>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
+                        <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>
+                          {title}
+                        </h3>
+                        <StatusBadge status={app.overall_status} type="application" overrideRole="CITIZEN" />
+                      </div>
+                      <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                        Application UARN: <code>{app.uarn}</code> • Registered: {formatDate(app.created_at)}
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      className="btn btn-secondary btn-sm"
+                      onClick={() => navigate('citizen_application_detail', { uarn: app.uarn })}
+                    >
+                      <span>Track Details</span>
+                      <ArrowRight size={13} />
+                    </button>
+                  </div>
+
+                  {/* Multi-Department Live Status Rail */}
+                  <div style={{ background: '#f8fafc', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '12px 16px' }}>
+                    <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px' }}>
+                      Cross-Department Verification Progress ({app.tasks?.length || 0} Departments):
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px' }}>
+                      {(app.tasks || []).map((task) => (
+                        <div
+                          key={task.task_id}
+                          style={{
+                            background: '#ffffff',
+                            border: '1px solid #e2e8f0',
+                            borderRadius: '4px',
+                            padding: '8px 12px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}>
+                            <Building size={14} color="#64748b" />
+                            <strong style={{ fontSize: '12.5px' }}>{formatDepartmentName(task.target_department)}</strong>
+                          </div>
+                          <StatusBadge status={task.status} type="task" overrideRole="CITIZEN" />
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               );

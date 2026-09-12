@@ -21,8 +21,8 @@ export const ROLE_LABELS = {
 export const ROLE_DESCRIPTIONS = {
   [ROLES.CITIZEN]: 'Review consent requests, track cross-department applications, and manage permissions.',
   [ROLES.DEPARTMENT_OFFICER]: 'Manage departmental work queue, inspect data mappings, and monitor tasks.',
-  [ROLES.DEPARTMENT_ADMIN]: 'Monitor department workloads, integration health (API/RPA), and team operations.',
-  [ROLES.MAHASETU_ADMIN]: 'Platform control plane for workflows, connectors, MDM identity, and exceptions.',
+  [ROLES.DEPARTMENT_ADMIN]: 'Monitor department workloads, task queues, and team operations.',
+  [ROLES.MAHASETU_ADMIN]: 'Platform control plane for cross-department workflows, MDM identity mapping, and statutory audit logs.',
   [ROLES.AUDITOR]: 'Strict read-only oversight across data workflows, consent actions, and immutable audit logs.',
 };
 
@@ -43,15 +43,12 @@ export const NAV_BY_ROLE = {
   [ROLES.DEPARTMENT_ADMIN]: [
     { id: 'deptadmin_overview', label: 'Overview', icon: 'LayoutDashboard' },
     { id: 'deptadmin_queue', label: 'Work Queue', icon: 'ListOrdered' },
-    { id: 'deptadmin_health', label: 'Integration Health', icon: 'Activity' },
   ],
   [ROLES.MAHASETU_ADMIN]: [
     { id: 'admin_overview', label: 'Overview', icon: 'LayoutDashboard' },
     { id: 'admin_workflows', label: 'Workflows', icon: 'GitMerge' },
-    { id: 'admin_connectors', label: 'Connectors', icon: 'Cable' },
     { id: 'admin_mdm', label: 'Identity Mapping', icon: 'Fingerprint' },
     { id: 'admin_semantic', label: 'Semantic Tool', icon: 'Sparkles' },
-    { id: 'admin_exceptions', label: 'Exceptions', icon: 'AlertTriangle' },
     { id: 'admin_audit', label: 'Audit Trail', icon: 'ShieldAlert' },
   ],
   [ROLES.AUDITOR]: [

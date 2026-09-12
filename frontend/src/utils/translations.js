@@ -189,7 +189,7 @@ export const TRANSLATIONS = {
   mr: {
     // Top Bar (मराठी)
     gov_india: 'भारत सरकार',
-    gov_india_sub: 'महाराष्ट्र शासन',
+    gov_india_sub: 'राष्ट्रीय डिजिटल महामार्ग',
     skip_to_content: 'मुख्य मजकुराकडे जा',
     screen_reader: 'स्क्रीन रीडर ऍक्सेस',
     
@@ -371,7 +371,7 @@ export const TRANSLATIONS = {
   hi: {
     // Top Bar (हिन्दी)
     gov_india: 'भारत सरकार',
-    gov_india_sub: 'महाराष्ट्र शासन',
+    gov_india_sub: 'राष्ट्रीय डिजिटल प्लेटफॉर्म',
     skip_to_content: 'मुख्य सामग्री पर जाएं',
     screen_reader: 'स्क्रीन रीडर एक्सेस',
     

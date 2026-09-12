@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../context/AuthContext';
+
 import { useNavigation } from '../../context/NavigationContext';
 import { applicationsApi } from '../../api/applications';
 import { StatusBadge } from '../../components/common/StatusBadge';
@@ -21,7 +21,6 @@ import {
 
 export function ApplicationDetail() {
   const { pageParams, navigate } = useNavigation();
-  const { globalId, localDecisions } = useAuth();
   const uarn = pageParams.uarn;
 
   const [loading, setLoading] = useState(true);
@@ -29,64 +28,35 @@ export function ApplicationDetail() {
   const [copied, setCopied] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
 
-  useEffect(() => {
+    useEffect(() => {
     const loadDetail = async () => {
       try {
         setLoading(true);
-        // Check local decisions first
-        if (localDecisions[uarn]) {
-          const dec = localDecisions[uarn];
-          setAppData(
-            dec.applicationData || {
-              uarn,
-              global_id: globalId,
-              trigger_event: 'Address_Update',
-              overall_status: dec.decision,
-              created_at: dec.updatedAt,
-              tasks: [
-                { task_id: 1, target_department: 'Revenue_Department', status: dec.decision === 'APPROVED' ? 'READY' : 'CANCELLED' },
-                { task_id: 2, target_department: 'Municipal_Corporation', status: dec.decision === 'APPROVED' ? 'READY' : 'CANCELLED' },
-                { task_id: 3, target_department: 'Transport_Department', status: dec.decision === 'APPROVED' ? 'READY' : 'CANCELLED' },
-                { task_id: 4, target_department: 'Police_Department', status: dec.decision === 'APPROVED' ? 'READY' : 'CANCELLED' },
-              ],
-            }
-          );
-          setLoading(false);
+
+        if (!uarn) {
+          setAppData(null);
           return;
         }
 
-        // Otherwise fetch pending
-        const data = await applicationsApi.getPendingApplications(globalId);
-        const match = (data?.applications || []).find((a) => a.uarn === uarn);
-        if (match) {
-          setAppData(match);
-        } else {
-          // Demo fallback
-          setAppData({
-            uarn: uarn || 'UARN-20260910225936810-A20B0870897E4D49',
-            global_id: globalId,
-            trigger_event: 'Address_Update',
-            overall_status: 'APPROVED',
-            created_at: '2026-09-10T22:59:36.812Z',
-            tasks: [
-              { task_id: 1, target_department: 'UIDAI', status: 'READY' },
-              { task_id: 2, target_department: 'Election_Commission', status: 'READY' },
-              { task_id: 3, target_department: 'Revenue_Department', status: 'READY' },
-              { task_id: 4, target_department: 'Municipal_Corporation', status: 'READY' },
-              { task_id: 5, target_department: 'Electricity_Department', status: 'READY' },
-              { task_id: 6, target_department: 'Police_Department', status: 'READY' },
-            ],
-          });
+        // First try the real MahaSetu tracking endpoint.
+        const data = await applicationsApi.getApplicationByUarn(uarn);
+
+        if (data) {
+          setAppData(data);
+          return;
         }
+
+        setAppData(null);
       } catch (err) {
-        console.error('Error loading detail:', err);
+        console.error('Error loading application detail:', err);
+        setAppData(null);
       } finally {
         setLoading(false);
       }
     };
 
     loadDetail();
-  }, [uarn, globalId, localDecisions]);
+  }, [uarn]);
 
   const copyUarn = () => {
     if (appData?.uarn) {
@@ -238,6 +208,12 @@ export function ApplicationDetail() {
                     <td style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
                       {task.status === 'READY'
                         ? 'Approved & queued for department synchronization'
+                        : task.status === 'PROCESSING' || task.status === 'RUNNING'
+                        ? 'Department is currently synchronizing records'
+                        : task.status === 'COMPLETED' || task.status === 'SUCCESS'
+                        ? 'Successfully synchronized with department records'
+                        : task.status === 'FAILED'
+                        ? 'Synchronization encountered an issue'
                         : task.status === 'CANCELLED'
                         ? 'Action cancelled due to citizen rejection'
                         : 'Awaiting citizen approval'}
